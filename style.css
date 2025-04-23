@@ -4,7 +4,7 @@
 /* global settings */
 body {
     font-family: 'Prompt', sans-serif;
-    background-color: #f7f7f7;
+    background: linear-gradient(135deg, #a8edea, #fed6e3);
     color: #333;
     margin: 0;
     padding: 0;

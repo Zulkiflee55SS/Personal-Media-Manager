@@ -16,6 +16,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username']);
     $email = trim($_POST['email']);
     $password = $_POST['password'];
+    $confirm_password = $_POST['confirm_password'];
+
+    if ($password !== $confirm_password) {
+        $errors[] = "รหัสผ่านไม่ตรงกัน";
+    }
 
     $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
     $stmt->execute([$username]);
@@ -39,12 +44,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 
-
 <!DOCTYPE html>
 <html>
 <head>
     <title>สมัครสมาชิก</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
+            color: #333;
+            padding: 50px;
+        }
+
+        .password-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .password-container input[type="password"],
+        .password-container input[type="text"] {
+            width: 100%;
+            padding-right: 40px;
+            box-sizing: border-box;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            color: #666;
+        }
+
+        .toggle-password:focus {
+            outline: none;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
@@ -56,19 +98,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <input type="hidden" name="csrf_token" value="<?= $token ?>">
         <input type="text" name="username" placeholder="ชื่อผู้ใช้" required><br>
         <input type="email" name="email" placeholder="อีเมล"><br>
-        <input type="password" name="password" placeholder="รหัสผ่าน" required><br>
+
+        <div class="password-container">
+            <input type="password" name="password" placeholder="รหัสผ่าน" required id="password">
+            <button type="button" class="toggle-password" onclick="togglePassword('password', this)">👁️</button>
+        </div>
+        <br>
+
+        <div class="password-container">
+            <input type="password" name="confirm_password" placeholder="ยืนยันรหัสผ่าน" required id="confirm_password">
+            <button type="button" class="toggle-password" onclick="togglePassword('confirm_password', this)">👁️</button>
+        </div>
+        <br>
+
         <button type="submit">สมัคร</button>
     </form>
     <p>ย้อนกลับหน้าหลัก <a href="index.php">เข้าสู่ระบบ</a></p>
 </div>
+
+<script>
+function togglePassword(id, btn) {
+    const input = document.getElementById(id);
+    if (input.type === "password") {
+        input.type = "text";
+        btn.textContent = "🙈";
+    } else {
+        input.type = "password";
+        btn.textContent = "👁️";
+    }
+}
+</script>
 </body>
 </html>
-<style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(to right, #e0f7fa, #fff);
-            color: #333;
-            padding: 50px;
-        }
-</style>

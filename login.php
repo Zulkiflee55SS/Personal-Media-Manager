@@ -59,11 +59,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <form action="login.php" method="POST">
         <input type="hidden" name="csrf_token" value="<?= generateToken() ?>">
         <input type="text" name="username" placeholder="ชื่อผู้ใช้" required><br>
-        <input type="password" name="password" placeholder="รหัสผ่าน" required><br>
+
+        <div class="password-container">
+            <input type="password" name="password" placeholder="รหัสผ่าน" required id="password">
+            <button type="button" class="toggle-password" onclick="togglePassword('password', this)">👁️</button>
+        </div>
+        <br>
+
         <button type="submit">เข้าสู่ระบบ</button>
     </form>
     <p>ยังไม่มีบัญชี? <a href="register.php">สมัครสมาชิก</a></p>
 </div>
+
+<script>
+function togglePassword(id, btn) {
+    const input = document.getElementById(id);
+    if (input.type === "password") {
+        input.type = "text";
+        btn.textContent = "🙈"; // เปลี่ยนเป็นไอคอนซ่อน
+    } else {
+        input.type = "password";
+        btn.textContent = "👁️"; // เปลี่ยนเป็นไอคอนแสดง
+    }
+}
+</script>
 </body>
 </html>
 
@@ -71,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     body {
         margin: 0;
         font-family: 'Segoe UI', sans-serif;
-        background: linear-gradient(to right, #e0f7fa, #fff);
+        background: linear-gradient(135deg, #a8edea, #fed6e3);
         color: #333;
         padding: 50px;
     }
@@ -85,5 +104,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     @keyframes fadein {
         from { opacity: 0; }
         to   { opacity: 1; }
+    }
+
+    .password-container {
+        position: relative;
+        display: inline-block;
+        width: 100%;
+    }
+
+    .password-container input[type="password"],
+    .password-container input[type="text"] {
+        width: 100%;
+        padding-right: 40px;
+        box-sizing: border-box;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 18px;
+        color: #666;
+    }
+
+    .toggle-password:focus {
+        outline: none;
     }
 </style>

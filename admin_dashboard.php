@@ -20,7 +20,7 @@ if (!isAdmin()) die("เข้าถึงไม่ได้");
 
         body {
             font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(to right, #e0f7fa, #fff); /* สีพื้นหลังแบบเดิม */
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
             color: #333;
         }
 

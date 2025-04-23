@@ -14,7 +14,7 @@ $token = generateToken();
     body {
       margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #e0f7fa, #fff);
+      background: linear-gradient(135deg, #a8edea, #fed6e3);
       color: #333;
       padding: 50px;
     }

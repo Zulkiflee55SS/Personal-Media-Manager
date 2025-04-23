@@ -4,7 +4,6 @@ requireLogin();
 if (!isAdmin()) die("เข้าถึงไม่ได้");
 require 'db_connect.php';
 
-// ดึงข้อมูลไฟล์จากฐานข้อมูล
 $stmt = $pdo->query("SELECT f.*, u.username FROM files f JOIN users u ON f.user_id = u.id ORDER BY f.uploaded_at DESC");
 $files = $stmt->fetchAll();
 ?>
@@ -16,27 +15,121 @@ $files = $stmt->fetchAll();
     <title>จัดการไฟล์ทั้งหมด</title>
     <link rel="stylesheet" href="style.css">
     <style>
+        /* [เหมือนเดิมหมด กูไม่แตะสไตล์มาก จะไม่แปะซ้ำให้รกตา] */
+    </style>
+    <script>
+        function searchFiles() {
+            const input = document.getElementById('searchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('.file-row');
+
+            rows.forEach(row => {
+                const tds = row.querySelectorAll('td');
+                if (tds.length > 0) {
+                    const filename = tds[2]?.textContent.toLowerCase() || '';
+                    const category = tds[3]?.textContent.toLowerCase() || '';
+
+                    if (filename.includes(input) || category.includes(input)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+
+<div class="container">
+    <h2>📂 ไฟล์ทั้งหมด</h2>
+    <a href="admin_dashboard.php" class="back-button">← กลับ</a>
+    <input type="text" id="searchInput" placeholder="ค้นหาชื่อไฟล์หรือหมวดหมู่..." onkeyup="searchFiles()">
+
+    <table id="fileTable">
+        <tr>
+            <th>รูปภาพ</th>
+            <th>ชื่อผู้ใช้</th>
+            <th>ชื่อไฟล์</th>
+            <th>หมวดหมู่</th>
+            <th>จัดการ</th>
+        </tr>
+        <?php foreach ($files as $file): ?>
+            <tr class="file-row">
+                <td>
+                    <?php
+                    $ext = strtolower(pathinfo($file['original_name'], PATHINFO_EXTENSION));
+                    $imageExt = ['jpg', 'jpeg', 'png', 'gif'];
+                    $videoExt = ['mp4', 'webm', 'ogg'];
+                    $pdfExt = ['pdf'];
+                    ?>
+                    <?php if (in_array($ext, $imageExt)): ?>
+                        <img src="uploads/<?= htmlspecialchars($file['filename']) ?>" alt="รูปภาพ" class="file-image">
+                    <?php elseif (in_array($ext, $videoExt)): ?>
+                        <video controls>
+                            <source src="uploads/<?= htmlspecialchars($file['filename']) ?>" type="video/<?= $ext ?>">
+                        </video>
+                    <?php elseif (in_array($ext, $pdfExt)): ?>
+                        <a href="uploads/<?= htmlspecialchars($file['filename']) ?>" target="_blank">เปิด PDF</a>
+                    <?php else: ?>
+                        <img src="file_icon/images.png" alt="ไอคอนไฟล์" class="file-image">
+                    <?php endif; ?>
+                </td>
+                <td><?= htmlspecialchars($file['username']) ?></td>
+                <td><?= htmlspecialchars($file['original_name']) ?></td>
+                <td><?= htmlspecialchars($file['category']) ?></td>
+                <td>
+                    <a href="download.php?id=<?= $file['id'] ?>" class="download-btn">📥 ดาวน์โหลด</a>
+                    <?php if (in_array($ext, $videoExt)): ?>
+                        <a href="uploads/<?= $file['filename'] ?>" class="download-btn" target="_blank">เล่นวิดีโอ</a>
+                    <?php elseif (in_array($ext, $pdfExt)): ?>
+                        <a href="uploads/<?= $file['filename'] ?>" class="download-btn" target="_blank">เปิดเอกสาร</a>
+                    <?php endif; ?>
+                    <a href="rename_file.php?id=<?= $file['id'] ?>" class="rename-btn">✏️ แก้ไขชื่อไฟล์</a>
+                    <a href="delete_file.php?id=<?= $file['id'] ?>" onclick="return confirm('ลบไฟล์นี้?')" class="delete-btn">🗑</a>
+                </td>
+            </tr>
+        <?php endforeach; ?>
+    </table>
+</div>
+
+</body>
+</html>
+
+<style>
+        /* สไตล์ต่างๆ */
         body {
             margin: 0;
             font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(to right, #e0f7fa, #fff);
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
             color: #333;
             padding: 50px;
         }
 
         .container {
-            max-width: 1100px;
+            max-width: 1400px;
             margin: 50px auto;
             padding: 30px;
             background: white;
             border-radius: 12px;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
             text-align: center;
+            border-radius: 8px;
+            
         }
 
         h2 {
             font-size: 40px;
             margin-bottom: 30px;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            width: 100%;
+            max-width: 400px;
+            margin: 20px 0;
+            border: 2px solid #ccc;
+            border-radius: 5px;
         }
 
         table {
@@ -69,6 +162,7 @@ $files = $stmt->fetchAll();
             max-width: 120px;
             max-height: 120px;
             border-radius: 8px;
+            
         }
 
         video {
@@ -84,7 +178,7 @@ $files = $stmt->fetchAll();
             display: inline-block;
             text-decoration: none;
             color: white;
-            transition: all 0.3s ease; /* เพิ่มการเคลื่อนไหว */
+            transition: all 0.3s ease;
         }
 
         .download-btn { 
@@ -97,34 +191,19 @@ $files = $stmt->fetchAll();
             background: #FF6347; 
         }
 
-        /* เพิ่มเอฟเฟกต์เมื่อเมาส์เข้าใกล้ */
         .download-btn:hover, .rename-btn:hover, .delete-btn:hover {
-            background-color: #007BFF; /* เปลี่ยนสีพื้นหลัง */
-            transform: scale(1.1); /* ขยายขนาดปุ่มเล็กน้อย */
+            background-color: #007BFF;
+            transform: scale(1.1);
         }
 
-        /* เพิ่มเอฟเฟกต์สำหรับปุ่มขยะ (ลบ) */
         .delete-btn:hover {
-            background-color: #D9534F; /* สีสำหรับปุ่มลบ */
-            transform: scale(1.1); /* ขยายขนาดปุ่มเล็กน้อย */
-        }
-
-        /* เพิ่มการเปลี่ยนแปลงของปุ่มดาวน์โหลด */
-        .download-btn:hover {
-            background-color: #007BFF; /* เปลี่ยนสีพื้นหลัง */
-            transform: scale(1.1); /* ขยายขนาดปุ่ม */
-        }
-
-        /* เพิ่มการเปลี่ยนแปลงของปุ่มแก้ไข */
-        .rename-btn:hover {
-            background-color: #FFA500; /* สีสำหรับปุ่มแก้ไข */
-            transform: scale(1.1); /* ขยายขนาดปุ่ม */
+            background-color: #D9534F;
         }
 
         .back-button {
             background: #388E3C;
             color: white;
-            padding: 12px 20px;
+            padding: 10px 20px;
             border-radius: 8px;
             text-decoration: none;
             margin-top: 30px;
@@ -132,60 +211,3 @@ $files = $stmt->fetchAll();
         }
 
     </style>
-</head>
-<body>
-
-<div class="container">
-    <h2>📂 ไฟล์ทั้งหมด</h2>
-    <table>
-        <tr>
-            <th>รูปภาพ</th>
-            <th>ชื่อผู้ใช้</th>
-            <th>ชื่อไฟล์</th>
-            <th>หมวดหมู่</th>
-            <th>จัดการ</th>
-        </tr>
-        <?php foreach ($files as $file): ?>
-            <tr>
-                <td>
-                    <?php
-                    $ext = strtolower(pathinfo($file['original_name'], PATHINFO_EXTENSION));
-                    $imageExt = ['jpg', 'jpeg', 'png', 'gif'];
-                    $videoExt = ['mp4', 'webm', 'ogg'];
-                    $pdfExt = ['pdf'];
-                    ?>
-                    
-                    <?php if (in_array($ext, $imageExt)): ?>
-                        <img src="uploads/<?= htmlspecialchars($file['filename']) ?>" alt="รูปภาพ" class="file-image">
-                    <?php elseif (in_array($ext, $videoExt)): ?>
-                        <video controls>
-                            <source src="uploads/<?= htmlspecialchars($file['filename']) ?>" type="video/<?= $ext ?>">
-                            วิดีโอไม่รองรับ
-                        </video>
-                    <?php elseif (in_array($ext, $pdfExt)): ?>
-                        <a href="uploads/<?= htmlspecialchars($file['filename']) ?>" target="_blank">เปิด PDF</a>
-                    <?php else: ?>
-                        <img src="file_icon/images.png" alt="ไอคอนไฟล์" class="file-image">
-                    <?php endif; ?>
-                </td>
-                <td><?= htmlspecialchars($file['username']) ?></td>
-                <td><?= htmlspecialchars($file['original_name']) ?></td>
-                <td><?= htmlspecialchars($file['category']) ?></td>
-                <td>
-                    <a href="download.php?id=<?= $file['id'] ?>" class="download-btn">📥 ดาวน์โหลด</a>
-                    <?php if (in_array($ext, $videoExt)): ?>
-                        <a href="uploads/<?= $file['filename'] ?>" class="download-btn" target="_blank">เล่นวิดีโอ</a>
-                    <?php elseif (in_array($ext, $pdfExt)): ?>
-                        <a href="uploads/<?= $file['filename'] ?>" class="download-btn" target="_blank">เปิดเอกสาร</a>
-                    <?php endif; ?>
-                    <a href="rename_file.php?id=<?= $file['id'] ?>" class="rename-btn">✏️ แก้ไขชื้อไฟล์</a>
-                    <a href="delete_file.php?id=<?= $file['id'] ?>" onclick="return confirm('ลบไฟล์นี้?')" class="delete-btn">🗑</a>
-                </td>
-            </tr>
-        <?php endforeach; ?>
-    </table>
-    <a href="admin_dashboard.php" class="back-button">← กลับ</a>
-</div>
-
-</body>
-</html>

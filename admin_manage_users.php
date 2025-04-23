@@ -4,9 +4,17 @@ requireLogin();
 if (!isAdmin()) die("เข้าถึงไม่ได้");
 require 'db_connect.php';
 
+if (isset($_GET['delete'])) {
+    $deleteId = $_GET['delete'];
+    $pdo->prepare("DELETE FROM users WHERE id = ?")->execute([$deleteId]);
+    header("Location: admin_manage_users.php");
+    exit;
+}
+
 $stmt = $pdo->query("SELECT * FROM users");
 $users = $stmt->fetchAll();
 ?>
+
 
 <!DOCTYPE html>
 <html lang="th">
@@ -25,7 +33,7 @@ $users = $stmt->fetchAll();
         body {
             margin: 0;
             font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(to right, #e0f7fa, #fff);
+            background: linear-gradient(135deg, #a8edea, #fed6e3);
             color: #333;
             padding: 50px;3;
         }
